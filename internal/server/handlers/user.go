@@ -5,7 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/Rafin000/e-wallet/internal/common"
 	"github.com/Rafin000/e-wallet/internal/domain"
+	"github.com/Rafin000/e-wallet/internal/server/dto"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,10 +58,10 @@ func (h *UserHandler) CreateUserWithRole(c *gin.Context) {
 		return
 	}
 
-	if !rbac.CanCreateUser(user.Role, req.Role) {
-		c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: "You don't have permission to create a user with this role"})
-		return
-	}
+	// if !rbac.CanCreateUser(user.Role, req.Role) {
+	// 	c.JSON(http.StatusForbidden, dto.ErrorResponse{Error: "You don't have permission to create a user with this role"})
+	// 	return
+	// }
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), common.Timeouts.User.Write)
 	defer cancel()
