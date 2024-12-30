@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Rafin000/e-wallet/docs"
 	"github.com/Rafin000/e-wallet/internal/common"
 	"github.com/Rafin000/e-wallet/internal/infra/postgres"
 	"github.com/Rafin000/e-wallet/internal/server/middlewares"
@@ -66,7 +67,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 	}
 	s.setupRoutes(jwtManager, cardEncryptor)
 	s.setupMiddlewares()
-	// setSwaggerInfo(s.httpServer.Addr)
+	setSwaggerInfo(s.httpServer.Addr)
 
 	return s, nil
 }
@@ -113,10 +114,10 @@ func setupPostgres(ctx context.Context, dbConfig common.DBConfig) (*sql.DB, erro
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	if err := postgres.RunMigrations(ctx, db); err != nil {
-		slog.Warn("failed to run migrations", "err", err)
-		return nil, fmt.Errorf("failed to run migrations: %w", err)
-	}
+	// if err := postgres.RunMigrations(ctx, db); err != nil {
+	// 	slog.Warn("failed to run migrations", "err", err)
+	// 	return nil, fmt.Errorf("failed to run migrations: %w", err)
+	// }
 
 	return db, nil
 }
@@ -136,15 +137,15 @@ func (s *Server) setupMiddlewares() {
 }
 
 // setSwaggerInfo configures Swagger documentation settings for the API.
-// func setSwaggerInfo(addr string) {
-// 	docs.SwaggerInfo.Title = "xPay Digital Wallet API"
-// 	docs.SwaggerInfo.Version = "1.0"
-// 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-// 	docs.SwaggerInfo.BasePath = "/api/v1"
-// 	docs.SwaggerInfo.Host = addr
+func setSwaggerInfo(addr string) {
+	docs.SwaggerInfo.Title = "e-wallet Digital Wallet API"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Host = addr
 
-// 	slog.Info(fmt.Sprintf("Swagger Specs available at http://%s/swagger/index.html", docs.SwaggerInfo.Host))
-// }
+	slog.Info(fmt.Sprintf("Swagger Specs available at http://%s/swagger/index.html", docs.SwaggerInfo.Host))
+}
 
 // Shutdown gracefully stops the server, closing the database connection and stopping the HTTP server.
 // It uses the provided context for timeout control.
