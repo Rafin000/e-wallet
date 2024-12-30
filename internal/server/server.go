@@ -145,3 +145,17 @@ func (s *Server) setupMiddlewares() {
 
 // 	slog.Info(fmt.Sprintf("Swagger Specs available at http://%s/swagger/index.html", docs.SwaggerInfo.Host))
 // }
+
+// Shutdown gracefully stops the server, closing the database connection and stopping the HTTP server.
+// It uses the provided context for timeout control.
+func (s *Server) Shutdown(ctx context.Context) error {
+	if err := s.DB.Close(); err != nil {
+		slog.Error("failed to close database connection", "error", err)
+	}
+
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("server shutdown failed: %w", err)
+	}
+
+	return nil
+}
