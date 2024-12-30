@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+
+	"github.com/Rafin000/e-wallet/internal/common"
 )
 
 // UserRepository defines the interface for user data operations.
