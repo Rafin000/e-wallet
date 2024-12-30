@@ -11,6 +11,7 @@ import (
 	"github.com/Rafin000/e-wallet/internal/common"
 	"github.com/Rafin000/e-wallet/internal/infra/postgres"
 	"github.com/Rafin000/e-wallet/internal/server/middlewares"
+	"github.com/Rafin000/e-wallet/internal/server/routes"
 	"github.com/Rafin000/e-wallet/internal/server/secure"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -66,6 +67,8 @@ func NewServer(ctx context.Context) (*Server, error) {
 	s.setupRoutes(jwtManager, cardEncryptor)
 	s.setupMiddlewares()
 	// setSwaggerInfo(s.httpServer.Addr)
+
+	return s, nil
 }
 
 // Start begins listening for HTTP requests on the configured address.

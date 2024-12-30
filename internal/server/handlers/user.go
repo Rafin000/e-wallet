@@ -7,6 +7,7 @@ import (
 
 	"github.com/Rafin000/e-wallet/internal/common"
 	"github.com/Rafin000/e-wallet/internal/domain"
+	"github.com/Rafin000/e-wallet/internal/secure"
 	"github.com/Rafin000/e-wallet/internal/server/dto"
 	"github.com/gin-gonic/gin"
 )
