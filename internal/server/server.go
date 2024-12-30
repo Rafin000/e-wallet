@@ -11,9 +11,9 @@ import (
 	"github.com/Rafin000/e-wallet/docs"
 	"github.com/Rafin000/e-wallet/internal/common"
 	"github.com/Rafin000/e-wallet/internal/infra/postgres"
+	"github.com/Rafin000/e-wallet/internal/secure"
 	"github.com/Rafin000/e-wallet/internal/server/middlewares"
 	"github.com/Rafin000/e-wallet/internal/server/routes"
-	"github.com/Rafin000/e-wallet/internal/server/secure"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -82,7 +82,7 @@ func (s *Server) setupRoutes(jm *secure.JWTManager, cardEncryptor *secure.CardEn
 	s.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := s.Router.Group("/api/v1")
-	routes.InitRoutes(apiGroup, s.DB, s.Config, jm, cardEncryptor)
+	routes.InitRoutes(apiGroup, s.DB, s.Config, jm)
 }
 
 // setupSlogger configures the global logger based on the application environment.

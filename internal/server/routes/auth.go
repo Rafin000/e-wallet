@@ -2,7 +2,8 @@ package routes
 
 import (
 	"github.com/Rafin000/e-wallet/internal/domain"
-	"github.com/Rafin000/e-wallet/internal/server/secure"
+	"github.com/Rafin000/e-wallet/internal/secure"
+	"github.com/Rafin000/e-wallet/internal/server/handlers"
 	"github.com/gin-gonic/gin"
 )
 
