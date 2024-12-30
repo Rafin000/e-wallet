@@ -44,7 +44,7 @@ func (h *UserHandler) CreateUserWithRole(c *gin.Context) {
 		return
 	}
 
-	user, ok := authorizedUser.(*domain.User)
+	_, ok := authorizedUser.(*domain.User)
 	if !ok {
 		slog.Error("failed to cast authorized user")
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "Unexpected server error"})
