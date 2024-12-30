@@ -9,7 +9,12 @@ import (
 	"os"
 
 	"github.com/Rafin000/e-wallet/internal/common"
+	"github.com/Rafin000/e-wallet/internal/infra/postgres"
+	"github.com/Rafin000/e-wallet/internal/server/middlewares"
+	"github.com/Rafin000/e-wallet/internal/server/secure"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Server encapsulates all dependencies and configurations for the HTTP server.
@@ -29,11 +34,51 @@ func NewServer(ctx context.Context) (*Server, error) {
 
 	setupSlogger(cfg.App)
 
+	db, err := setupPostgres(ctx, cfg.DB)
+	if err != nil {
+		return nil, err
+	}
+
+	router := setupRouter(cfg.App)
+
+	jwtManager, err := secure.NewJWTManager(&cfg.JWT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create JWT manager: %w", err)
+	}
+
+	cardEncryptor, err := secure.NewCardEncryptor(cfg.Card.AESKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create card encryptor: %w", err)
+	}
+
+	s := &Server{
+		Router: router,
+		DB:     db,
+		Config: cfg,
+		httpServer: &http.Server{
+			Addr:         cfg.App.ServerAddress,
+			Handler:      router,
+			IdleTimeout:  common.Timeouts.Server.Read * 2,
+			ReadTimeout:  common.Timeouts.Server.Read,
+			WriteTimeout: common.Timeouts.Server.Write,
+		},
+	}
+	s.setupRoutes(jwtManager, cardEncryptor)
+	s.setupMiddlewares()
+	// setSwaggerInfo(s.httpServer.Addr)
 }
 
 // Start begins listening for HTTP requests on the configured address.
 func (s *Server) Start() error {
 	return s.httpServer.ListenAndServe()
+}
+
+// setupRoutes initializes all API routes for the server.
+func (s *Server) setupRoutes(jm *secure.JWTManager, cardEncryptor *secure.CardEncryptor) {
+	s.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	apiGroup := s.Router.Group("/api/v1")
+	routes.InitRoutes(apiGroup, s.DB, s.Config, jm, cardEncryptor)
 }
 
 // setupSlogger configures the global logger based on the application environment.
@@ -54,6 +99,7 @@ func setupSlogger(appSettings common.AppSettings) {
 	if appSettings.GinMode == gin.DebugMode {
 		logLevel.Set(slog.LevelDebug)
 	}
+
 }
 
 // setupPostgres establishes a connection to the PostgreSQL database and runs migrations.
@@ -71,3 +117,28 @@ func setupPostgres(ctx context.Context, dbConfig common.DBConfig) (*sql.DB, erro
 
 	return db, nil
 }
+
+// setupRouter initializes and configures the Gin router.
+// It sets the Gin mode based on the application settings and disables trusted proxies.
+func setupRouter(appSettings common.AppSettings) *gin.Engine {
+	gin.SetMode(appSettings.GinMode)
+	router := gin.New()
+	_ = router.SetTrustedProxies(nil)
+	return router
+}
+
+// setupMiddlewares adds all necessary middlewares to the Gin router.
+func (s *Server) setupMiddlewares() {
+	s.Router.Use(middlewares.InitMiddlewares()...)
+}
+
+// setSwaggerInfo configures Swagger documentation settings for the API.
+// func setSwaggerInfo(addr string) {
+// 	docs.SwaggerInfo.Title = "xPay Digital Wallet API"
+// 	docs.SwaggerInfo.Version = "1.0"
+// 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+// 	docs.SwaggerInfo.BasePath = "/api/v1"
+// 	docs.SwaggerInfo.Host = addr
+
+// 	slog.Info(fmt.Sprintf("Swagger Specs available at http://%s/swagger/index.html", docs.SwaggerInfo.Host))
+// }
