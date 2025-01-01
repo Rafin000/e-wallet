@@ -48,10 +48,10 @@ func NewServer(ctx context.Context) (*Server, error) {
 		return nil, fmt.Errorf("failed to create JWT manager: %w", err)
 	}
 
-	cardEncryptor, err := secure.NewCardEncryptor(cfg.Card.AESKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create card encryptor: %w", err)
-	}
+	// cardEncryptor, err := secure.NewCardEncryptor(cfg.Card.AESKey)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create card encryptor: %w", err)
+	// }
 
 	s := &Server{
 		Router: router,
@@ -65,7 +65,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 			WriteTimeout: common.Timeouts.Server.Write,
 		},
 	}
-	s.setupRoutes(jwtManager, cardEncryptor)
+	s.setupRoutes(jwtManager)
 	s.setupMiddlewares()
 	setSwaggerInfo(s.httpServer.Addr)
 
@@ -78,7 +78,7 @@ func (s *Server) Start() error {
 }
 
 // setupRoutes initializes all API routes for the server.
-func (s *Server) setupRoutes(jm *secure.JWTManager, cardEncryptor *secure.CardEncryptor) {
+func (s *Server) setupRoutes(jm *secure.JWTManager) {
 	s.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	apiGroup := s.Router.Group("/api/v1")
@@ -114,10 +114,10 @@ func setupPostgres(ctx context.Context, dbConfig common.DBConfig) (*sql.DB, erro
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// if err := postgres.RunMigrations(ctx, db); err != nil {
-	// 	slog.Warn("failed to run migrations", "err", err)
-	// 	return nil, fmt.Errorf("failed to run migrations: %w", err)
-	// }
+	if err := postgres.RunMigrations(ctx, db); err != nil {
+		slog.Warn("failed to run migrations", "err", err)
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
+	}
 
 	return db, nil
 }
