@@ -19,6 +19,23 @@ services:
     networks:
       - xpay_network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xpay_api
+    environment:
+      DB_URL: "postgres://ash:samplepass@postgres:5432/xpay?sslmode=disable&timezone=UTC"
+      SERVER_ADDRESS: "0.0.0.0:9090"
+    ports:
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - xpay_network
+
 volumes:
   pg_data:
     name: xpay_pg_data
